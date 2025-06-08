@@ -211,12 +211,24 @@ confirm_installation_with_user() {
     fi
 }
 
-main() {
+ensure_yq_installed(){
     if ! command -v yq &> /dev/null; then
         echo "Error: yq is required but not installed."
         exit 1
     fi
-    
+
+    version=$(yq --version | grep -o 'v[0-9]\+' | cut -d 'v' -f 2 )
+    if [ "$version" -lt "4" ]; then
+        echo "Error: yq version 4 or higher is required"
+        echo "Current version: $(yq -q --version)"
+        echo "Please upgrade yq"
+        exit 1
+    fi
+}
+
+main() {
+    ensure_yq_installed
+
     assert_eks_addons_enabled add_ons[@]
     fetch_yaml_and_enable_overrides add_ons[@]
 
