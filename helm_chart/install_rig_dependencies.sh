@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 SRC_DIR="HyperPodHelmChart"
 OUTPUT_DIR="HyperPodHelmChartForRIG"
@@ -6,10 +7,10 @@ OUTPUT_DIR="HyperPodHelmChartForRIG"
 # Format: "<eks|hyperpod>,namespace,<k8s_name|chart_dir>"
 add_ons=(
     "eks,kube-system,aws-node,daemonset"
-    #"eks,kube-system,coredns,deployment"
-    #"hp,kube-system,mpi-operator,deployment"
-    #"hp,kube-system,neuron-device-plugin,daemonset"
-    #"hp,kube-system,training-operators,deployment"
+    "eks,kube-system,coredns,deployment"
+    "hp,kube-system,mpi-operator,deployment"
+    "hp,kube-system,neuron-device-plugin,daemonset"
+    "hp,kube-system,training-operators,deployment"
 )
 
 generate_helm_chart_root() {
@@ -155,7 +156,7 @@ fetch_yaml_and_enable_overrides() {
 		    enable_nodeselectors_and_tolerations_overrides $outpath
             fi
 	else
-	    cp -r $SRC_DIR/charts/$name $OUTPUT_DIR/charts/$name
+	    cp -r $SRC_DIR/charts/$name/. $OUTPUT_DIR/charts/$name
 
             get_helm_chart_from_local $SRC_DIR $name $kind | \
                enable_nodeselectors_and_tolerations_overrides $outpath
@@ -190,6 +191,7 @@ refresh_helm_dependencies() {
 render_rig_helm_chart() {
     local outpath=$1
     helm template rig-dependencies ./HyperPodHelmChartForRIG --namespace kube-system -f ./HyperPodHelmChartForRIG/values.yaml > $outpath
+    cat $outpath
     echo ""
     echo ""
     echo "Rendered target Helm chart at $outpath"
@@ -199,8 +201,6 @@ render_rig_helm_chart() {
 
 confirm_installation_with_user() {
     local outpath=$1
-    cat $outpath
-    echo
     read -p "🚀 Do you want to install this Helm chart ($outpath) ? [y/N]: " confirm
 
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
