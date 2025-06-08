@@ -10,6 +10,14 @@
 # Helm wil AUTOMATICALLY SCOPE the add-on values when resolving each dependency
 # In other words, what is exposed to each dependency template is 
 # {{ .Values.tolerations }} , NOT {{ .Values.add-on.tolerations  }}
+
+
+# This is a special case. We will not use values.yaml to override the values for this add-on
+# It will still be rendered by Helm using special logic.
+# See install_rig_dependncies.yaml
+#aws-cni:
+
+
 coredns:
   tolerations:
     - effect: NoSchedule
@@ -51,7 +59,8 @@ neuron-device-plugin:
       operator: Equal
       key: "sagemaker.amazonaws.com/RestrictedNode"
       value: "Worker"
-  nodeSelector: {}
+  nodeSelector:
+    "sagemaker.amazonaws.com/instance-group-type": "Restricted"
 
 training-operators:
   tolerations:
