@@ -144,7 +144,7 @@ fetch_yaml_and_enable_overrides() {
         # Enable Overrides in Helm Charts/YAML
         #####################################################
 	local helm_chart=""
-        local outpath="$OUTPUT_DIR/charts/$name/templates/$name.yml"
+        local outpath="$OUTPUT_DIR/charts/$name/templates/rig.$name.yml"
 	if [ "$scope" = "eks" ]; then
             generate_helm_chart_root $OUTPUT_DIR $name
             if [ "$name" = "aws-node" ]; then
@@ -157,6 +157,7 @@ fetch_yaml_and_enable_overrides() {
             fi
 	else
 	    cp -r $SRC_DIR/charts/$name/. $OUTPUT_DIR/charts/$name
+	    rm -rf $OUTPUT_DIR/charts/$name/templates/*
 
             get_helm_chart_from_local $SRC_DIR $name $kind | \
                enable_nodeselectors_and_tolerations_overrides $outpath
@@ -191,7 +192,6 @@ refresh_helm_dependencies() {
 render_rig_helm_chart() {
     local outpath=$1
     helm template rig-dependencies ./HyperPodHelmChartForRIG --namespace kube-system -f ./HyperPodHelmChartForRIG/values.yaml > $outpath
-    cat $outpath
     echo ""
     echo ""
     echo "Rendered target Helm chart at $outpath"
